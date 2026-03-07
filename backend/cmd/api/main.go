@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"consorcios/internal/db"
@@ -17,6 +18,12 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
+)
+
+var (
+	appHandler *handlers.Handler
+	dbReady    = make(chan struct{})
+	once       sync.Once
 )
 
 func main() {
@@ -43,13 +50,74 @@ func main() {
 		MaxAge:           300,
 	}))
 
-	// Health check responde imediatamente, antes do banco estar pronto
+	// Health check responde imediatamente
 	r.Get("/api/health", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"status":"ok"}`))
 	})
 
-	// Conecta ao banco e registra todas as rotas em background
+	// Middleware que espera o banco estar pronto antes de processar requests
+	waitForDB := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			<-dbReady // bloqueia até o banco estar pronto
+			next.ServeHTTP(w, r)
+		})
+	}
+
+	// Registra TODAS as rotas imediatamente (mas elas esperam o banco via middleware)
+	r.Route("/api", func(r chi.Router) {
+		r.Use(waitForDB)
+
+		// Auth routes (públicas)
+		r.Post("/auth/login", func(w http.ResponseWriter, r *http.Request) {
+			appHandler.Login(w, r)
+		})
+
+		r.Group(func(r chi.Router) {
+			r.Use(authmw.Authenticator)
+
+			r.Get("/auth/me", func(w http.ResponseWriter, r *http.Request) { appHandler.Me(w, r) })
+			r.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) { appHandler.Dashboard(w, r) })
+
+			r.Get("/consorcios", func(w http.ResponseWriter, r *http.Request) { appHandler.ListConsorcios(w, r) })
+			r.Get("/consorcios/{id}", func(w http.ResponseWriter, r *http.Request) { appHandler.GetConsorcio(w, r) })
+			r.Get("/consorcios/{id}/periodos", func(w http.ResponseWriter, r *http.Request) { appHandler.ListPeriodos(w, r) })
+			r.Get("/consorcios/{id}/participantes", func(w http.ResponseWriter, r *http.Request) { appHandler.ListConsorcioParticipantes(w, r) })
+
+			r.With(authmw.RequireRole("admin", "operador")).Post("/consorcios", func(w http.ResponseWriter, r *http.Request) { appHandler.CreateConsorcio(w, r) })
+			r.With(authmw.RequireRole("admin", "operador")).Put("/consorcios/{id}", func(w http.ResponseWriter, r *http.Request) { appHandler.UpdateConsorcio(w, r) })
+			r.With(authmw.RequireRole("admin", "operador")).Post("/consorcios/{id}/gerar-periodos", func(w http.ResponseWriter, r *http.Request) { appHandler.GerarPeriodos(w, r) })
+			r.With(authmw.RequireRole("admin", "operador")).Post("/consorcios/{id}/participantes", func(w http.ResponseWriter, r *http.Request) { appHandler.AddParticipante(w, r) })
+			r.With(authmw.RequireRole("admin", "operador")).Patch("/consorcios/{cid}/participantes/{pid}/status", func(w http.ResponseWriter, r *http.Request) { appHandler.UpdateStatusParticipante(w, r) })
+			r.With(authmw.RequireRole("admin")).Delete("/consorcios/{id}", func(w http.ResponseWriter, r *http.Request) { appHandler.DeleteConsorcio(w, r) })
+			r.With(authmw.RequireRole("admin")).Delete("/consorcios/{cid}/participantes/{pid}", func(w http.ResponseWriter, r *http.Request) { appHandler.RemoveParticipante(w, r) })
+
+			r.Get("/participantes", func(w http.ResponseWriter, r *http.Request) { appHandler.ListParticipantes(w, r) })
+			r.Get("/participantes/{id}", func(w http.ResponseWriter, r *http.Request) { appHandler.GetParticipante(w, r) })
+			r.Get("/participantes/{id}/resumo", func(w http.ResponseWriter, r *http.Request) { appHandler.ResumoParticipante(w, r) })
+			r.Get("/participantes/{id}/consolidacao", func(w http.ResponseWriter, r *http.Request) { appHandler.ConsolidacaoParticipante(w, r) })
+
+			r.With(authmw.RequireRole("admin", "operador")).Post("/participantes", func(w http.ResponseWriter, r *http.Request) { appHandler.CreateParticipante(w, r) })
+			r.With(authmw.RequireRole("admin", "operador")).Put("/participantes/{id}", func(w http.ResponseWriter, r *http.Request) { appHandler.UpdateParticipante(w, r) })
+			r.With(authmw.RequireRole("admin")).Delete("/participantes/{id}", func(w http.ResponseWriter, r *http.Request) { appHandler.DeleteParticipante(w, r) })
+
+			r.Get("/pagamentos", func(w http.ResponseWriter, r *http.Request) { appHandler.ListPagamentos(w, r) })
+			r.With(authmw.RequireRole("admin", "operador")).Post("/pagamentos", func(w http.ResponseWriter, r *http.Request) { appHandler.CreatePagamento(w, r) })
+			r.With(authmw.RequireRole("admin")).Delete("/pagamentos/{id}", func(w http.ResponseWriter, r *http.Request) { appHandler.DeletePagamento(w, r) })
+
+			r.Get("/recebimentos", func(w http.ResponseWriter, r *http.Request) { appHandler.ListRecebimentos(w, r) })
+			r.With(authmw.RequireRole("admin", "operador")).Post("/recebimentos", func(w http.ResponseWriter, r *http.Request) { appHandler.CreateRecebimento(w, r) })
+			r.With(authmw.RequireRole("admin")).Delete("/recebimentos/{id}", func(w http.ResponseWriter, r *http.Request) { appHandler.DeleteRecebimento(w, r) })
+
+			r.With(authmw.RequireRole("admin")).Get("/users", func(w http.ResponseWriter, r *http.Request) { appHandler.ListUsers(w, r) })
+			r.With(authmw.RequireRole("admin")).Post("/users", func(w http.ResponseWriter, r *http.Request) { appHandler.CreateUser(w, r) })
+			r.With(authmw.RequireRole("admin")).Put("/users/{id}", func(w http.ResponseWriter, r *http.Request) { appHandler.UpdateUser(w, r) })
+			r.With(authmw.RequireRole("admin")).Delete("/users/{id}", func(w http.ResponseWriter, r *http.Request) { appHandler.DeleteUser(w, r) })
+			r.Patch("/users/{id}/senha", func(w http.ResponseWriter, r *http.Request) { appHandler.AlterarSenha(w, r) })
+		})
+	})
+
+	// Conecta ao banco em background e sinaliza quando estiver pronto
 	go func() {
 		pool, err := db.Connect(context.Background(), dsn)
 		if err != nil {
@@ -63,56 +131,12 @@ func main() {
 
 		seedAdminUser(context.Background(), pool)
 
-		h := handlers.New(pool)
-
-		r.Route("/api", func(r chi.Router) {
-			r.Post("/auth/login", h.Login)
-
-			r.Group(func(r chi.Router) {
-				r.Use(authmw.Authenticator)
-
-				r.Get("/auth/me", h.Me)
-				r.Get("/dashboard", h.Dashboard)
-
-				r.Get("/consorcios", h.ListConsorcios)
-				r.Get("/consorcios/{id}", h.GetConsorcio)
-				r.Get("/consorcios/{id}/periodos", h.ListPeriodos)
-				r.Get("/consorcios/{id}/participantes", h.ListConsorcioParticipantes)
-
-				r.With(authmw.RequireRole("admin", "operador")).Post("/consorcios", h.CreateConsorcio)
-				r.With(authmw.RequireRole("admin", "operador")).Put("/consorcios/{id}", h.UpdateConsorcio)
-				r.With(authmw.RequireRole("admin", "operador")).Post("/consorcios/{id}/gerar-periodos", h.GerarPeriodos)
-				r.With(authmw.RequireRole("admin", "operador")).Post("/consorcios/{id}/participantes", h.AddParticipante)
-				r.With(authmw.RequireRole("admin", "operador")).Patch("/consorcios/{cid}/participantes/{pid}/status", h.UpdateStatusParticipante)
-				r.With(authmw.RequireRole("admin")).Delete("/consorcios/{id}", h.DeleteConsorcio)
-				r.With(authmw.RequireRole("admin")).Delete("/consorcios/{cid}/participantes/{pid}", h.RemoveParticipante)
-
-				r.Get("/participantes", h.ListParticipantes)
-				r.Get("/participantes/{id}", h.GetParticipante)
-				r.Get("/participantes/{id}/resumo", h.ResumoParticipante)
-				r.Get("/participantes/{id}/consolidacao", h.ConsolidacaoParticipante)
-
-				r.With(authmw.RequireRole("admin", "operador")).Post("/participantes", h.CreateParticipante)
-				r.With(authmw.RequireRole("admin", "operador")).Put("/participantes/{id}", h.UpdateParticipante)
-				r.With(authmw.RequireRole("admin")).Delete("/participantes/{id}", h.DeleteParticipante)
-
-				r.Get("/pagamentos", h.ListPagamentos)
-				r.With(authmw.RequireRole("admin", "operador")).Post("/pagamentos", h.CreatePagamento)
-				r.With(authmw.RequireRole("admin")).Delete("/pagamentos/{id}", h.DeletePagamento)
-
-				r.Get("/recebimentos", h.ListRecebimentos)
-				r.With(authmw.RequireRole("admin", "operador")).Post("/recebimentos", h.CreateRecebimento)
-				r.With(authmw.RequireRole("admin")).Delete("/recebimentos/{id}", h.DeleteRecebimento)
-
-				r.With(authmw.RequireRole("admin")).Get("/users", h.ListUsers)
-				r.With(authmw.RequireRole("admin")).Post("/users", h.CreateUser)
-				r.With(authmw.RequireRole("admin")).Put("/users/{id}", h.UpdateUser)
-				r.With(authmw.RequireRole("admin")).Delete("/users/{id}", h.DeleteUser)
-				r.Patch("/users/{id}/senha", h.AlterarSenha)
-			})
+		appHandler = handlers.New(pool)
+		
+		once.Do(func() {
+			close(dbReady) // sinaliza que o banco está pronto
+			log.Println("banco de dados pronto, rotas liberadas")
 		})
-
-		log.Println("rotas registradas, banco pronto")
 	}()
 
 	log.Printf("servidor rodando em :%s", port)
