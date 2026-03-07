@@ -124,10 +124,10 @@ LEFT JOIN recebimentos rec ON rec.consorcio_participante_id = cp.id
 GROUP BY p.id, p.nome, per.data_referencia;
 
 -- Índices
-CREATE INDEX idx_periodos_consorcio        ON periodos(consorcio_id);
-CREATE INDEX idx_periodos_data             ON periodos(data_referencia);
-CREATE INDEX idx_pagamentos_cp             ON pagamentos(consorcio_participante_id);
-CREATE INDEX idx_pagamentos_periodo        ON pagamentos(periodo_id);
-CREATE INDEX idx_recebimentos_cp           ON recebimentos(consorcio_participante_id);
-CREATE INDEX idx_cp_consorcio              ON consorcio_participantes(consorcio_id);
-CREATE INDEX idx_cp_participante           ON consorcio_participantes(participante_id);
+CREATE INDEX IF NOT EXISTS idx_periodos_consorcio        ON periodos(consorcio_id);
+CREATE INDEX IF NOT EXISTS idx_periodos_data             ON periodos(data_referencia);
+CREATE INDEX IF NOT EXISTS idx_pagamentos_cp             ON pagamentos(consorcio_participante_id);
+CREATE INDEX IF NOT EXISTS idx_pagamentos_periodo        ON pagamentos(periodo_id);
+CREATE INDEX IF NOT EXISTS idx_recebimentos_cp           ON recebimentos(consorcio_participante_id);
+CREATE INDEX IF NOT EXISTS idx_cp_consorcio              ON consorcio_participantes(consorcio_id);
+CREATE INDEX IF NOT EXISTS idx_cp_participante           ON consorcio_participantes(participante_id);
