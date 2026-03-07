@@ -1,0 +1,12 @@
+# Railway deployment configuration
+# Docs: https://docs.railway.app/reference/config-as-code
+
+[build]
+  # Railway detecta o docker-compose.yml automaticamente.
+  # Este arquivo configura opções extras do deploy.
+
+[deploy]
+  healthcheckPath = "/api/health"
+  healthcheckTimeout = 120
+  restartPolicyType = "ON_FAILURE"
+  restartPolicyMaxRetries = 5

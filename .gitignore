@@ -1,0 +1,53 @@
+# ── Variáveis de ambiente — NUNCA commitar ──────────────────────
+.env
+.env.local
+.env.*.local
+backend/.env
+
+# ── Dependências ─────────────────────────────────────────────────
+node_modules/
+frontend/node_modules/
+
+# ── Build outputs ─────────────────────────────────────────────────
+frontend/dist/
+frontend/build/
+backend/api
+backend/api.exe
+
+# ── Go ────────────────────────────────────────────────────────────
+*.test
+*.out
+vendor/
+go.work
+go.work.sum
+
+# ── Frontend cache / tooling ──────────────────────────────────────
+frontend/.vite/
+frontend/.cache/
+frontend/coverage/
+frontend/storybook-static/
+*.tsbuildinfo
+
+# ── Docker ────────────────────────────────────────────────────────
+.docker/
+
+# ── Editor / IDE ──────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.project
+.classpath
+
+# ── OS ────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# ── Logs e temporários ────────────────────────────────────────────
+*.log
+*.log.*
+logs/
+tmp/
+temp/

@@ -1,0 +1,10 @@
+# Binary output
+api
+
+# Local env — injected by docker-compose, not baked into image
+.env
+
+# Editor / OS
+.vscode/
+.DS_Store
+*.log
