@@ -1,12 +1,6 @@
-# Railway deployment configuration
-# Docs: https://docs.railway.app/reference/config-as-code
-
-[build]
-  # Railway detecta o docker-compose.yml automaticamente.
-  # Este arquivo configura opções extras do deploy.
-
-[deploy]
-  healthcheckPath = "/api/health"
-  healthcheckTimeout = 120
-  restartPolicyType = "ON_FAILURE"
-  restartPolicyMaxRetries = 5
+# Configuração Railway — monorepo
+# No painel do Railway, crie 3 serviços:
+#   1. PostgreSQL  → use o template do Railway
+#   2. backend     → GitHub repo, Root Directory = backend
+#   3. frontend    → GitHub repo, Root Directory = frontend
+# Cada subpasta tem seu próprio railway.toml com as configs de build/deploy.
