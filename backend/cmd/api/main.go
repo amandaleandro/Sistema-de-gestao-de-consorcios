@@ -37,6 +37,11 @@ func main() {
 	}
 	defer pool.Close()
 
+	if err := db.RunMigrations(context.Background(), pool); err != nil {
+		log.Fatalf("falha ao executar migrations: %v", err)
+	}
+	log.Println("migrations executadas com sucesso")
+
 	seedAdminUser(context.Background(), pool)
 
 	r := chi.NewRouter()
