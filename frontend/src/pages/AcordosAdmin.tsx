@@ -16,12 +16,15 @@ export default function AcordosAdmin() {
       setInadimplentes(r.data)
       setLoading(false)
     })
+    // Carrega acordos ao abrir a página
+    buscarAcordos({})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const buscarAcordos = async (f: any) => {
+  const buscarAcordos = async (f: Record<string, string | number | undefined>) => {
     setLoading(true)
     const params = new URLSearchParams()
-    Object.entries(f).forEach(([k, v]) => { if (v) params.append(k, v) })
+    Object.entries(f).forEach(([k, v]) => { if (v !== undefined && v !== null && v !== '') params.append(k, String(v)) })
     const res = await api.get('/acordos/filtros?' + params.toString())
     setAcordos(res.data)
     setLoading(false)
