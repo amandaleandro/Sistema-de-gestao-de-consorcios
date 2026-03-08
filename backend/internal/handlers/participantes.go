@@ -1,3 +1,6 @@
+
+package handlers
+
 // ListInadimplentes GET /api/participantes/inadimplentes
 func (h *Handler) ListInadimplentes(w http.ResponseWriter, r *http.Request) {
        rows, err := h.db.Query(context.Background(),
@@ -24,7 +27,6 @@ func (h *Handler) ListInadimplentes(w http.ResponseWriter, r *http.Request) {
        }
        writeJSON(w, http.StatusOK, list)
 }
-package handlers
 
 import (
 	"context"

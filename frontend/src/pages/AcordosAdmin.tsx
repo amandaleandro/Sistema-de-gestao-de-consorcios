@@ -65,7 +65,7 @@ export default function AcordosAdmin() {
               </div>
               <div className="mt-2 text-xs text-gray-500">Criado em: {new Date(a.criado_em).toLocaleDateString()}</div>
               <div className="mt-2">
-                <Link to={`/acordos/${a.participante_id}`} className="btn-secondary ml-4">Detalhes</Link>
+                <Link to={`/acordos/${a.id}`} className="btn-secondary ml-4">Detalhes</Link>
               </div>
             </div>
           ))}
