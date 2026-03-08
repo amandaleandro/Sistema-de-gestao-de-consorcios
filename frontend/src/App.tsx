@@ -38,9 +38,11 @@ const roleLabels: Record<string, string> = {
   visualizador: 'Visualizador',
 }
 
-  const { user, logout, isAdmin } = useAuth()
-  const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+// --- AppLayout moved up ---
+function AppLayout() {
+  const { user, logout, isAdmin } = useAuth();
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const nav = [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -53,7 +55,7 @@ const roleLabels: Record<string, string> = {
       { to: '/acordos', label: 'Acordos', icon: CreditCard },
       { to: '/acordos/:id', label: 'Detalhe de Acordo', icon: CreditCard },
     ] : []),
-  ]
+  ];
 
   return (
     <div className="flex h-screen overflow-hidden flex-col md:flex-row">
@@ -173,9 +175,12 @@ const roleLabels: Record<string, string> = {
         </Routes>
       </main>
     </div>
-  )
+  );
 }
 
+
+
+// --- export default App remains at the end ---
 export default function App() {
   return (
     <BrowserRouter>
@@ -186,6 +191,6 @@ export default function App() {
         </Routes>
       </AuthProvider>
     </BrowserRouter>
-  )
+  );
 }
 
