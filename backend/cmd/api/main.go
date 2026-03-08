@@ -73,6 +73,8 @@ func main() {
 	r.Route("/api", func(r chi.Router) {
 		// Auth (público)
 		r.Post("/auth/login", h.Login)
+		// Inadimplentes (público)
+		r.Get("/participantes/inadimplentes", h.ListInadimplentes)
 
 		// Rotas protegidas
 		r.Group(func(r chi.Router) {
