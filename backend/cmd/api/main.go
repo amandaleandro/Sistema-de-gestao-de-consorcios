@@ -118,6 +118,14 @@ func main() {
 			r.Patch("/users/{id}/senha", h.AlterarSenha)
 
 			r.With(authmw.RequireRole("admin", "operador")).Post("/acordos", h.CriarAcordo)
+			r.With(authmw.RequireRole("admin", "operador")).Patch("/acordos/{id}/status", h.AtualizarStatusAcordo)
+
+			r.With(authmw.RequireRole("admin", "operador")).Get("/acordos", h.ListarAcordos)
+			r.With(authmw.RequireRole("admin", "operador")).Get("/acordos/{id}/pagamentos", h.ListarPagamentosAcordo)
+
+			r.With(authmw.RequireRole("admin", "operador")).Get("/acordos/export/csv", h.ExportarAcordosCSV)
+
+			r.With(authmw.RequireRole("admin", "operador")).Get("/acordos/filtros", h.ListarAcordosComFiltros)
 
 			// Acordos
 			r.With(authmw.RequireRole("admin", "operador")).Get("/participantes/{id}/acordos", h.ListarAcordosParticipante)

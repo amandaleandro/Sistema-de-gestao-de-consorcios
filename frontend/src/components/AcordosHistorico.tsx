@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import api from '../lib/api'
 import { formatBRL } from '../lib/utils'
+import AcordoStatusActions from './AcordoStatusActions'
+import AcordoPagamentosProgresso from './AcordoPagamentosProgresso'
 
 interface Acordo {
   id: string
@@ -8,6 +10,7 @@ interface Acordo {
   parcelas: number
   total: number
   criado_em: string
+  status?: string
 }
 
 export default function AcordosHistorico({ participanteId }: { participanteId: string }) {
@@ -34,6 +37,15 @@ export default function AcordosHistorico({ participanteId }: { participanteId: s
               <span className="font-medium">{a.parcelas}x</span> de <span className="font-medium">{formatBRL(a.valor_parcela)}</span> (Total: {formatBRL(a.total)})
             </span>
             <span className="text-xs text-gray-500 mt-1 sm:mt-0">{new Date(a.criado_em).toLocaleDateString()}</span>
+            {a.status && (
+              <span className={`ml-2 badge badge-${a.status}`}>{a.status}</span>
+            )}
+            {a.id && (
+              <AcordoStatusActions acordoId={a.id} statusAtual={a.status || 'ativo'} onStatusChange={() => {}} />
+            )}
+            {a.id && a.total && (
+              <AcordoPagamentosProgresso acordoId={a.id} total={a.total} />
+            )}
           </li>
         ))}
       </ul>

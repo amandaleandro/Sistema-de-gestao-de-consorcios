@@ -200,10 +200,17 @@ type ProximoRecebimento struct {
 // ---- Acordo ----
 
 type Acordo struct {
-	ID             string    `json:"id"`
-	ParticipanteID string    `json:"participante_id"`
-	ValorParcela   float64   `json:"valor_parcela"`
-	Parcelas       int       `json:"parcelas"`
-	Total          float64   `json:"total"`
-	CriadoEm       time.Time `json:"criado_em"`
+	ID                string     `json:"id"`
+	ParticipanteID    string     `json:"participante_id"`
+	ValorParcela      float64    `json:"valor_parcela"`
+	Parcelas          int        `json:"parcelas"`
+	Total             float64    `json:"total"`
+	Status            string     `json:"status"`
+	Observacao        string     `json:"observacao"`
+	CriadoEm          time.Time  `json:"criado_em"`
+	AtualizadoEm      time.Time  `json:"atualizado_em"`
+	QuitadoEm         *time.Time `json:"quitado_em,omitempty"`
+	CanceladoEm       *time.Time `json:"cancelado_em,omitempty"`
+	UsuarioAprovador  *string    `json:"usuario_aprovador,omitempty"`
+	UsuarioCancelador *string    `json:"usuario_cancelador,omitempty"`
 }

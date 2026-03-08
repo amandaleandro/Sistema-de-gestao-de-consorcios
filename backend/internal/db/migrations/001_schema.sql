@@ -58,7 +58,8 @@ CREATE TABLE IF NOT EXISTS pagamentos (
     data_pagamento          DATE        NOT NULL DEFAULT CURRENT_DATE,
     valor_pago              NUMERIC(12,2) NOT NULL,
     observacao              TEXT,
-    criado_em               TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    criado_em               TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    acordo_id                UUID        REFERENCES acordos(id)
 );
 
 -- Recebimento de cotas (contemplação)
@@ -80,7 +81,14 @@ CREATE TABLE IF NOT EXISTS acordos (
     valor_parcela NUMERIC(12,2) NOT NULL,
     parcelas INTEGER NOT NULL,
     total NUMERIC(12,2) NOT NULL,
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    status VARCHAR(15) NOT NULL DEFAULT 'ativo' CHECK (status IN ('ativo','quitado','cancelado')),
+    atualizado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    observacao TEXT,
+    quitado_em TIMESTAMPTZ,
+    cancelado_em TIMESTAMPTZ,
+    usuario_aprovador UUID REFERENCES users(id),
+    usuario_cancelador UUID REFERENCES users(id)
 );
 
 -- View: resumo financeiro por participante+consórcio
