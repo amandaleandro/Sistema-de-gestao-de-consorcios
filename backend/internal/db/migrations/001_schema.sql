@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS consorcios (
     qtd_participantes   INTEGER       NOT NULL,
     data_inicio         DATE          NOT NULL,
     periodicidade       VARCHAR(10)   NOT NULL CHECK (periodicidade IN ('diario','semanal','quinzenal','mensal')),
+    dia_semana          INTEGER       CHECK (dia_semana BETWEEN 0 AND 6), -- 0=domingo, 1=segunda, ... 6=sábado
     ativo               BOOLEAN       NOT NULL DEFAULT TRUE,
     criado_em           TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
     atualizado_em       TIMESTAMPTZ   NOT NULL DEFAULT NOW()

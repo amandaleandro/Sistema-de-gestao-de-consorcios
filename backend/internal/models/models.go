@@ -15,6 +15,7 @@ type Consorcio struct {
 	QtdParticipantes   int       `json:"qtd_participantes"`
 	DataInicio         string    `json:"data_inicio"`
 	Periodicidade      string    `json:"periodicidade"`
+	DiaSemana          *int      `json:"dia_semana,omitempty"`
 	Ativo              bool      `json:"ativo"`
 	CriadoEm           time.Time `json:"criado_em"`
 	AtualizadoEm       time.Time `json:"atualizado_em"`
@@ -28,6 +29,7 @@ type CreateConsorcioInput struct {
 	QtdParticipantes   int     `json:"qtd_participantes"`
 	DataInicio         string  `json:"data_inicio"`
 	Periodicidade      string  `json:"periodicidade"`
+	DiaSemana          *int    `json:"dia_semana,omitempty"`
 }
 
 // ---- Participante ----

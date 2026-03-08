@@ -77,15 +77,15 @@ func (h *Handler) CreateConsorcio(w http.ResponseWriter, r *http.Request) {
 	var c models.Consorcio
 	err := h.db.QueryRow(context.Background(),
 		`INSERT INTO consorcios (nome, valor_inicial_cota, taxa_aumento, taxa_administrativa,
-		  qtd_participantes, data_inicio, periodicidade)
-		 VALUES ($1,$2,$3,$4,$5,$6,$7)
-		 RETURNING id, nome, valor_inicial_cota, taxa_aumento, taxa_administrativa,
-		           qtd_participantes, data_inicio::text, periodicidade, ativo, criado_em, atualizado_em`,
+			 qtd_participantes, data_inicio, periodicidade, dia_semana)
+			VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+			RETURNING id, nome, valor_inicial_cota, taxa_aumento, taxa_administrativa,
+				  qtd_participantes, data_inicio::text, periodicidade, dia_semana, ativo, criado_em, atualizado_em`,
 		in.Nome, in.ValorInicialCota, in.TaxaAumento, in.TaxaAdministrativa,
-		in.QtdParticipantes, in.DataInicio, in.Periodicidade).
+		in.QtdParticipantes, in.DataInicio, in.Periodicidade, in.DiaSemana).
 		Scan(&c.ID, &c.Nome, &c.ValorInicialCota, &c.TaxaAumento,
 			&c.TaxaAdministrativa, &c.QtdParticipantes, &c.DataInicio,
-			&c.Periodicidade, &c.Ativo, &c.CriadoEm, &c.AtualizadoEm)
+			&c.Periodicidade, &c.DiaSemana, &c.Ativo, &c.CriadoEm, &c.AtualizadoEm)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -104,16 +104,16 @@ func (h *Handler) UpdateConsorcio(w http.ResponseWriter, r *http.Request) {
 	var c models.Consorcio
 	err := h.db.QueryRow(context.Background(),
 		`UPDATE consorcios SET nome=$1, valor_inicial_cota=$2, taxa_aumento=$3,
-		  taxa_administrativa=$4, qtd_participantes=$5, data_inicio=$6, periodicidade=$7,
-		  atualizado_em=NOW()
-		 WHERE id=$8
-		 RETURNING id, nome, valor_inicial_cota, taxa_aumento, taxa_administrativa,
-		           qtd_participantes, data_inicio::text, periodicidade, ativo, criado_em, atualizado_em`,
+			 taxa_administrativa=$4, qtd_participantes=$5, data_inicio=$6, periodicidade=$7, dia_semana=$8,
+			 atualizado_em=NOW()
+			WHERE id=$9
+			RETURNING id, nome, valor_inicial_cota, taxa_aumento, taxa_administrativa,
+				  qtd_participantes, data_inicio::text, periodicidade, dia_semana, ativo, criado_em, atualizado_em`,
 		in.Nome, in.ValorInicialCota, in.TaxaAumento, in.TaxaAdministrativa,
-		in.QtdParticipantes, in.DataInicio, in.Periodicidade, id).
+		in.QtdParticipantes, in.DataInicio, in.Periodicidade, in.DiaSemana, id).
 		Scan(&c.ID, &c.Nome, &c.ValorInicialCota, &c.TaxaAumento,
 			&c.TaxaAdministrativa, &c.QtdParticipantes, &c.DataInicio,
-			&c.Periodicidade, &c.Ativo, &c.CriadoEm, &c.AtualizadoEm)
+			&c.Periodicidade, &c.DiaSemana, &c.Ativo, &c.CriadoEm, &c.AtualizadoEm)
 	if err != nil {
 		writeError(w, http.StatusNotFound, "consórcio não encontrado")
 		return
