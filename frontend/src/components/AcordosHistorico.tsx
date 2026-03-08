@@ -32,7 +32,7 @@ export default function AcordosHistorico({ participanteId }: { participanteId: s
       <h4 className="font-semibold text-gray-700 mb-2">Histórico de Acordos</h4>
       <ul className="space-y-2">
         {acordos.map(a => (
-          <li key={a.id} className="bg-gray-50 rounded p-3 border flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <li key={a.id} className="bg-gray-50 rounded p-3 border flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <span>
               <span className="font-medium">{a.parcelas}x</span> de <span className="font-medium">{formatBRL(a.valor_parcela)}</span> (Total: {formatBRL(a.total)})
             </span>

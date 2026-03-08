@@ -54,16 +54,16 @@ function AppLayout() {
   ]
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden flex-col md:flex-row">
       {/* Sidebar */}
-      <aside className="w-60 bg-brand-900 flex flex-col shrink-0">
-        <div className="px-6 py-5 border-b border-brand-700">
+      <aside className="w-full md:w-60 bg-brand-900 flex flex-row md:flex-col shrink-0">
+        <div className="px-4 py-3 md:px-6 md:py-5 border-b border-brand-700 w-full">
           <h1 className="text-white font-bold text-lg leading-tight">
-            Gestão de<br />Consórcios
+            Gestão de<br className="hidden md:block" />Consórcios
           </h1>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-1 py-2 md:px-3 md:py-4 space-y-0 md:space-y-1 overflow-x-auto md:overflow-y-auto flex flex-row md:flex-col gap-1 md:gap-0">
           {nav.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
@@ -71,31 +71,31 @@ function AppLayout() {
               end={to === '/'}
               className={({ isActive }) =>
                 clsx(
-                  'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                  'flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors whitespace-nowrap',
                   isActive
                     ? 'bg-brand-600 text-white'
                     : 'text-brand-100 hover:bg-brand-700 hover:text-white',
                 )
               }
             >
-              <Icon size={18} />
-              {label}
+              <Icon size={16} className="shrink-0" />
+              <span className="hidden sm:inline">{label}</span>
             </NavLink>
           ))}
         </nav>
 
         {/* User info */}
         {user && (
-          <div className="border-t border-brand-700 p-3">
+          <div className="border-t border-brand-700 p-2 md:p-3 w-full">
             <button
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-brand-700 transition-colors text-left"
+              className="w-full flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 rounded-lg hover:bg-brand-700 transition-colors text-left"
               onClick={() => setUserMenuOpen(o => !o)}
             >
               <div className="w-8 h-8 rounded-full bg-brand-600 flex items-center justify-center text-white font-semibold text-sm shrink-0">
                 {user.nome.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white text-sm font-medium truncate">{user.nome}</p>
+                <p className="text-white text-xs md:text-sm font-medium truncate">{user.nome}</p>
                 <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${roleColors[user.role]}`}>
                   {roleLabels[user.role]}
                 </span>

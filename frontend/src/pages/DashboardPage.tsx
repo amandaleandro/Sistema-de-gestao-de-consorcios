@@ -62,7 +62,7 @@ export default function DashboardPage() {
       <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4">
         <StatCard label="Total Arrecadado" value={formatBRL(data.total_arrecadado)} icon={TrendingUp} color="green" />
         <StatCard label="Total Dívidas" value={formatBRL(data.total_dividas)} icon={AlertCircle} color="red" />
         <StatCard label="Consórcios Ativos" value={String(data.consorcios_ativos)} icon={CircleDollarSign} color="blue" />
@@ -75,7 +75,7 @@ export default function DashboardPage() {
         <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
           <Calendar size={18} /> Resumo de Hoje
         </h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 xs:grid-cols-2 gap-4">
           <div className="bg-orange-50 rounded-lg p-4 flex items-center gap-3">
             <ArrowUpCircle className="text-orange-500" size={24} />
             <div>

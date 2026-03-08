@@ -10,13 +10,25 @@ export default function AcordoDetalheAdmin() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [resumo, setResumo] = useState<ResumoParticipante | null>(null)
+  const [erro, setErro] = useState<string | null>(null)
   const [aprovado, setAprovado] = useState(false)
   const [acordo, setAcordo] = useState<AcordoSimulado | null>(null)
   const [registrando, setRegistrando] = useState(false)
 
   useEffect(() => {
-    api.get<ResumoParticipante>(`/participantes/${id}/resumo`).then(r => setResumo(r.data))
+    setErro(null)
+    api.get<ResumoParticipante>(`/participantes/${id}/resumo`)
+      .then(r => setResumo(r.data))
+      .catch(err => {
+        if (err.response?.status === 404) {
+          setErro('Participante não encontrado.')
+        } else {
+          setErro('Erro ao carregar participante.')
+        }
+      })
   }, [id])
+
+  if (erro) return <div className="p-8 text-red-500">{erro}</div>
 
   const registrarAcordo = async (acordo: AcordoSimulado) => {
     setRegistrando(true)

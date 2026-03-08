@@ -87,7 +87,7 @@ export default function ConsorcioDetalhe() {
       </div>
 
       {/* Info */}
-      <div className="card grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="card grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         {[
           ['Cota Inicial', formatBRL(consorcio.valor_inicial_cota)],
           ['Aumento', formatBRL(consorcio.taxa_aumento)],

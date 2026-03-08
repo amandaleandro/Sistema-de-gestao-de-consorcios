@@ -55,9 +55,9 @@ export default function ParticipanteForm({ initial, onSaved, onCancel }: Props) 
           {...register('telefone')} />
       </div>
 
-      <div className="flex gap-3 justify-end pt-2">
-        <button type="button" className="btn-secondary" onClick={onCancel}>Cancelar</button>
-        <button type="submit" className="btn-primary" disabled={isSubmitting}>
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-end pt-2">
+        <button type="button" className="btn-secondary w-full sm:w-auto" onClick={onCancel}>Cancelar</button>
+        <button type="submit" className="btn-primary w-full sm:w-auto" disabled={isSubmitting}>
           {isSubmitting ? 'Salvando...' : initial ? 'Salvar' : 'Criar Participante'}
         </button>
       </div>

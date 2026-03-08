@@ -190,7 +190,7 @@ export default function RecebimentosPage() {
               ))}
             </select>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
             <div>
               <label className="label">Data do Recebimento</label>
               <input type="date" className="input" value={form.data_recebimento}

@@ -10,6 +10,7 @@ import AcordosHistorico from '../components/AcordosHistorico'
 export default function ParticipanteDetalhe() {
   const { id } = useParams<{ id: string }>()
   const [resumo, setResumo] = useState<ResumoParticipante | null>(null)
+  const [erro, setErro] = useState<string | null>(null)
   const [consolidacao, setConsolidacao] = useState<ConsolidacaoDia | null>(null)
   const [dataConsol, setDataConsol] = useState(new Date().toISOString().slice(0, 10))
   const [acordo, setAcordo] = useState<AcordoSimulado | null>(null)
@@ -20,11 +21,22 @@ export default function ParticipanteDetalhe() {
       .then(r => setConsolidacao(r.data))
   }
 
+
   useEffect(() => {
-    api.get<ResumoParticipante>(`/participantes/${id}/resumo`).then(r => setResumo(r.data))
+    setErro(null)
+    api.get<ResumoParticipante>(`/participantes/${id}/resumo`)
+      .then(r => setResumo(r.data))
+      .catch(err => {
+        if (err.response?.status === 404) {
+          setErro('Participante não encontrado.')
+        } else {
+          setErro('Erro ao carregar participante.')
+        }
+      })
     loadConsolidacao(dataConsol)
   }, [id])
 
+  if (erro) return <div className="p-8 text-red-500">{erro}</div>
   if (!resumo) return <div className="p-8 text-gray-400">Carregando...</div>
 
   const total_pendentes = resumo.consorcios.reduce((s, c) => s + c.parcelas_pendentes, 0)
@@ -54,7 +66,7 @@ export default function ParticipanteDetalhe() {
       </div>
 
       {/* Resumo geral */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-4">
         <div className="card text-center">
           <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Total Pago</p>
           <p className="text-2xl font-bold text-green-600 mt-1">{formatBRL(resumo.total_pago)}</p>

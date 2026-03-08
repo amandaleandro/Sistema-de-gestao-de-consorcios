@@ -13,7 +13,7 @@ export default function AcordosFiltros({ onChange }: { onChange: (filtros: any) 
   }
 
   return (
-    <form className="flex flex-wrap gap-2 items-end mb-4" onSubmit={e => { e.preventDefault(); aplicar() }}>
+    <form className="flex flex-col sm:flex-row flex-wrap gap-2 items-end mb-4" onSubmit={e => { e.preventDefault(); aplicar() }}>
       <div>
         <label className="block text-xs text-gray-600">Status</label>
         <select className="input" value={status} onChange={e => setStatus(e.target.value)}>

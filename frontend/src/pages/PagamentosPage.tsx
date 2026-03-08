@@ -177,7 +177,7 @@ export default function PagamentosPage() {
               ))}
             </select>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
             <div>
               <label className="label">Data do Pagamento</label>
               <input type="date" className="input" value={form.data_pagamento}
