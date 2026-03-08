@@ -4,8 +4,7 @@ import api from '../lib/api'
 import { ResumoParticipante, ConsolidacaoDia } from '../types'
 import { formatBRL, formatDate, statusLabel } from '../lib/utils'
 import { ArrowLeft, ArrowDownCircle, ArrowUpCircle, Calendar } from 'lucide-react'
-import SimuladorAcordo from '../components/SimuladorAcordo'
-import { SimuladorAcordoAdmin, AcordoSimulado } from '../pages/SimuladorAcordo'
+import { SimuladorAcordoAdmin, AcordoSimulado } from './SimuladorAcordo'
 import AcordosHistorico from '../components/AcordosHistorico'
 
 export default function ParticipanteDetalhe() {
