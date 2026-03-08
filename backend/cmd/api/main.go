@@ -5,6 +5,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"strings"
+	"syscall"
 	"time"
 
 	"consorcios/internal/db"
@@ -22,33 +25,27 @@ import (
 func main() {
 	_ = godotenv.Load()
 
-	dsn := os.Getenv("DATABASE_URL")
-	if dsn == "" {
-		dsn = "postgres://consorcios:consorcios123@localhost:5432/consorcios?sslmode=disable"
-	}
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
+	dsn := getenv("DATABASE_URL", "postgres://consorcios:consorcios123@localhost:5432/consorcios?sslmode=disable")
+	port := getenv("PORT", "8080")
 
-	// Conecta ao banco ANTES de iniciar o servidor
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
 	log.Println("conectando ao banco de dados...")
-	pool, err := db.Connect(context.Background(), dsn)
+	pool, err := db.Connect(ctx, dsn)
 	if err != nil {
 		log.Fatalf("falha ao conectar no banco: %v", err)
 	}
+	defer pool.Close()
 	log.Println("banco conectado")
 
-	// Roda migrations
-	if err := db.RunMigrations(context.Background(), pool); err != nil {
+	if err := db.RunMigrations(ctx, pool); err != nil {
 		log.Fatalf("falha ao executar migrations: %v", err)
 	}
 	log.Println("migrations executadas com sucesso")
 
-	// Cria usuário admin se necessário
 	seedAdminUser(context.Background(), pool)
 
-	// Inicializa handlers
 	h := handlers.New(pool)
 
 	r := chi.NewRouter()
@@ -56,27 +53,22 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"*"},
+		AllowedOrigins:   parseOrigins(getenv("CORS_ALLOWED_ORIGINS", "*")),
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
 
-	// Health check
 	r.Get("/api/health", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"status":"ok"}`))
+		_, _ = w.Write([]byte(`{"status":"ok"}`))
 	})
 
-	// Rotas da API
 	r.Route("/api", func(r chi.Router) {
-		// Auth (público)
 		r.Post("/auth/login", h.Login)
-		// Inadimplentes (público)
 		r.Get("/participantes/inadimplentes", h.ListInadimplentes)
 
-		// Rotas protegidas
 		r.Group(func(r chi.Router) {
 			r.Use(authmw.Authenticator)
 
@@ -121,26 +113,42 @@ func main() {
 
 			r.With(authmw.RequireRole("admin", "operador")).Post("/acordos", h.CriarAcordo)
 			r.With(authmw.RequireRole("admin", "operador")).Patch("/acordos/{id}/status", h.AtualizarStatusAcordo)
-
 			r.With(authmw.RequireRole("admin", "operador")).Get("/acordos", h.ListarAcordos)
 			r.With(authmw.RequireRole("admin", "operador")).Get("/acordos/{id}/pagamentos", h.ListarPagamentosAcordo)
-
 			r.With(authmw.RequireRole("admin", "operador")).Get("/acordos/export/csv", h.ExportarAcordosCSV)
-
 			r.With(authmw.RequireRole("admin", "operador")).Get("/acordos/filtros", h.ListarAcordosComFiltros)
-
-			// Acordos
 			r.With(authmw.RequireRole("admin", "operador")).Get("/participantes/{id}/acordos", h.ListarAcordosParticipante)
 		})
 	})
 
-	log.Printf("servidor rodando em :%s", port)
-	if err := http.ListenAndServe(":"+port, r); err != nil {
-		log.Fatal(err)
+	srv := &http.Server{
+		Addr:              ":" + port,
+		Handler:           r,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+
+	go func() {
+		log.Printf("servidor rodando em :%s", port)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("erro no servidor: %v", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("encerrando servidor...")
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer shutdownCancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("erro no shutdown gracioso: %v", err)
 	}
 }
 
-// seedAdminUser cria o usuário admin padrão se a tabela de usuários estiver vazia.
 func seedAdminUser(ctx context.Context, pool *pgxpool.Pool) {
 	var count int
 	if err := pool.QueryRow(ctx, `SELECT COUNT(*) FROM users`).Scan(&count); err != nil {
@@ -150,17 +158,48 @@ func seedAdminUser(ctx context.Context, pool *pgxpool.Pool) {
 	if count > 0 {
 		return
 	}
-	hash, err := bcrypt.GenerateFromPassword([]byte("admin123"), bcrypt.DefaultCost)
+
+	adminEmail := getenv("ADMIN_EMAIL", "admin@consorcios.com")
+	adminPassword := getenv("ADMIN_PASSWORD", "admin123")
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
 	if err != nil {
 		log.Printf("seed: erro ao gerar hash: %v", err)
 		return
 	}
+
 	_, err = pool.Exec(ctx,
 		`INSERT INTO users (nome, email, senha_hash, role) VALUES ($1,$2,$3,$4)`,
-		"Administrador", "admin@consorcios.com", string(hash), "admin")
+		"Administrador", adminEmail, string(hash), "admin")
 	if err != nil {
 		log.Printf("seed: erro ao criar admin: %v", err)
 		return
 	}
-	log.Println("[seed] Usuário admin criado → admin@consorcios.com / admin123  (troque a senha!)")
+
+	if os.Getenv("ADMIN_PASSWORD") == "" {
+		log.Println("[seed] Usuário admin criado com senha padrão. Defina ADMIN_PASSWORD em produção.")
+	}
+	log.Printf("[seed] Usuário admin criado -> %s", adminEmail)
+}
+
+func getenv(key, fallback string) string {
+	if value := strings.TrimSpace(os.Getenv(key)); value != "" {
+		return value
+	}
+	return fallback
+}
+
+func parseOrigins(value string) []string {
+	parts := strings.Split(value, ",")
+	origins := make([]string, 0, len(parts))
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed != "" {
+			origins = append(origins, trimmed)
+		}
+	}
+	if len(origins) == 0 {
+		return []string{"*"}
+	}
+	return origins
 }

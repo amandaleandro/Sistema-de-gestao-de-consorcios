@@ -1,41 +1,39 @@
-
 package handlers
+
+import (
+	"consorcios/internal/models"
+	"context"
+	"net/http"
+
+	"github.com/go-chi/chi/v5"
+)
 
 // ListInadimplentes GET /api/participantes/inadimplentes
 func (h *Handler) ListInadimplentes(w http.ResponseWriter, r *http.Request) {
-       rows, err := h.db.Query(context.Background(),
-	       `SELECT p.id, p.nome, COALESCE(p.telefone, '')
+	rows, err := h.db.Query(context.Background(),
+		`SELECT p.id, p.nome, COALESCE(p.telefone, '')
 		FROM participantes p
 		JOIN consorcio_participantes cp ON cp.participante_id = p.id
 		WHERE cp.status = 'inadimplente'
 		GROUP BY p.id, p.nome, p.telefone`)
-       if err != nil {
-	       writeError(w, http.StatusInternalServerError, err.Error())
-	       return
-       }
-       defer rows.Close()
-       var list []models.ResumoParticipante
-       for rows.Next() {
-	       var p models.ResumoParticipante
-	       if err := rows.Scan(&p.ParticipanteID, &p.Nome, &p.Telefone); err != nil {
-		       continue
-	       }
-	       list = append(list, p)
-       }
-       if list == nil {
-	       list = []models.ResumoParticipante{}
-       }
-       writeJSON(w, http.StatusOK, list)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer rows.Close()
+	var list []models.ResumoParticipante
+	for rows.Next() {
+		var p models.ResumoParticipante
+		if err := rows.Scan(&p.ParticipanteID, &p.Nome, &p.Telefone); err != nil {
+			continue
+		}
+		list = append(list, p)
+	}
+	if list == nil {
+		list = []models.ResumoParticipante{}
+	}
+	writeJSON(w, http.StatusOK, list)
 }
-
-import (
-	"context"
-	"net/http"
-
-	"consorcios/internal/models"
-
-	"github.com/go-chi/chi/v5"
-)
 
 // ListParticipantes GET /api/participantes
 func (h *Handler) ListParticipantes(w http.ResponseWriter, r *http.Request) {
