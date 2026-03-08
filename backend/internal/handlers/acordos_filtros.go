@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"consorcios/internal/models"
 	"context"
 	"net/http"
 	"strconv"
@@ -52,7 +53,7 @@ func (h *Handler) ListarAcordosComFiltros(w http.ResponseWriter, r *http.Request
 		idx++
 	}
 
-	query := "SELECT id, participante_id, valor_parcela, parcelas, total, status, criado_em FROM acordos"
+	query := "SELECT id, participante_id, valor_parcela, parcelas, total, status, observacao, criado_em, atualizado_em, quitado_em, cancelado_em, usuario_aprovador, usuario_cancelador FROM acordos"
 	if len(filtros) > 0 {
 		query += " WHERE " + strings.Join(filtros, " AND ")
 	}
@@ -64,20 +65,19 @@ func (h *Handler) ListarAcordosComFiltros(w http.ResponseWriter, r *http.Request
 		return
 	}
 	defer rows.Close()
-	var acordos []map[string]interface{}
+	var acordos []models.Acordo
 	for rows.Next() {
-		var id, participante_id, status, criado_em string
-		var valor_parcela, total float64
-		var parcelas int
-		if err := rows.Scan(&id, &participante_id, &valor_parcela, &parcelas, &total, &status, &criado_em); err != nil {
+		var a models.Acordo
+		if err := rows.Scan(
+			&a.ID, &a.ParticipanteID, &a.ValorParcela, &a.Parcelas, &a.Total, &a.Status, &a.Observacao,
+			&a.CriadoEm, &a.AtualizadoEm, &a.QuitadoEm, &a.CanceladoEm, &a.UsuarioAprovador, &a.UsuarioCancelador,
+		); err != nil {
 			continue
 		}
-		acordos = append(acordos, map[string]interface{}{
-			"id": id, "participante_id": participante_id, "valor_parcela": valor_parcela, "parcelas": parcelas, "total": total, "status": status, "criado_em": criado_em,
-		})
+		acordos = append(acordos, a)
 	}
 	if acordos == nil {
-		acordos = []map[string]interface{}{}
+		acordos = []models.Acordo{}
 	}
 	writeJSON(w, http.StatusOK, acordos)
 }
