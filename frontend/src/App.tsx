@@ -8,6 +8,8 @@ import {
   ShieldCheck,
   LogOut,
   ChevronDown,
+  Menu as MenuIcon,
+  X as CloseIcon,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { useState } from 'react'
@@ -36,9 +38,9 @@ const roleLabels: Record<string, string> = {
   visualizador: 'Visualizador',
 }
 
-function AppLayout() {
   const { user, logout, isAdmin } = useAuth()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const nav = [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -55,15 +57,39 @@ function AppLayout() {
 
   return (
     <div className="flex h-screen overflow-hidden flex-col md:flex-row">
+      {/* Mobile menu button */}
+      <button
+        className="md:hidden absolute top-4 left-4 z-30 bg-brand-900 p-2 rounded-lg text-white shadow-lg focus:outline-none"
+        onClick={() => setSidebarOpen((o) => !o)}
+        aria-label={sidebarOpen ? 'Fechar menu' : 'Abrir menu'}
+      >
+        {sidebarOpen ? <CloseIcon size={24} /> : <MenuIcon size={24} />}
+      </button>
+
       {/* Sidebar */}
-      <aside className="w-full md:w-60 bg-brand-900 flex flex-row md:flex-col shrink-0">
-        <div className="px-4 py-3 md:px-6 md:py-5 border-b border-brand-700 w-full">
+      <aside
+        className={clsx(
+          'fixed md:static top-0 left-0 h-full w-64 md:w-60 bg-brand-900 flex flex-col shrink-0 z-20 transition-transform duration-200',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+          'md:translate-x-0 md:flex-row md:h-auto md:w-60 md:relative md:top-auto md:left-auto',
+        )}
+        style={{ maxWidth: '100vw' }}
+      >
+        <div className="px-4 py-3 md:px-6 md:py-5 border-b border-brand-700 w-full flex items-center justify-between md:block">
           <h1 className="text-white font-bold text-lg leading-tight">
             Gestão de<br className="hidden md:block" />Consórcios
           </h1>
+          {/* Close button inside sidebar for mobile */}
+          <button
+            className="md:hidden ml-2 p-1 text-brand-200 hover:text-white focus:outline-none"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Fechar menu"
+          >
+            <CloseIcon size={20} />
+          </button>
         </div>
 
-        <nav className="flex-1 px-1 py-2 md:px-3 md:py-4 space-y-0 md:space-y-1 overflow-x-auto md:overflow-y-auto flex flex-row md:flex-col gap-1 md:gap-0">
+        <nav className="flex-1 px-1 py-2 md:px-3 md:py-4 space-y-0 md:space-y-1 overflow-x-auto md:overflow-y-auto flex flex-col gap-1 md:gap-0">
           {nav.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
@@ -77,9 +103,10 @@ function AppLayout() {
                     : 'text-brand-100 hover:bg-brand-700 hover:text-white',
                 )
               }
+              onClick={() => setSidebarOpen(false)}
             >
               <Icon size={16} className="shrink-0" />
-              <span className="hidden sm:inline">{label}</span>
+              <span className="inline">{label}</span>
             </NavLink>
           ))}
         </nav>
@@ -120,6 +147,14 @@ function AppLayout() {
           </div>
         )}
       </aside>
+
+      {/* Overlay for mobile when sidebar is open */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-40 z-10 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
       {/* Main */}
       <main className="flex-1 overflow-y-auto">
