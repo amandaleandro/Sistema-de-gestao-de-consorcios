@@ -1,4 +1,5 @@
 export interface Consorcio {
+  dia_semana: number | null
   id: string
   nome: string
   valor_inicial_cota: number
