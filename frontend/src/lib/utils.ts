@@ -11,6 +11,7 @@ export function formatDate(date: string): string {
 export const periodicidadeLabel: Record<string, string> = {
   diario: 'Diário',
   semanal: 'Semanal',
+  quinzenal: 'Quinzenal',
   mensal: 'Mensal',
 }
 

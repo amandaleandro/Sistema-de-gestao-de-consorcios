@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS consorcios (
     taxa_administrativa NUMERIC(5,2)  NOT NULL DEFAULT 0, -- percentual ex: 10.00
     qtd_participantes   INTEGER       NOT NULL,
     data_inicio         DATE          NOT NULL,
-    periodicidade       VARCHAR(10)   NOT NULL CHECK (periodicidade IN ('diario','semanal','mensal')),
+    periodicidade       VARCHAR(10)   NOT NULL CHECK (periodicidade IN ('diario','semanal','quinzenal','mensal')),
     ativo               BOOLEAN       NOT NULL DEFAULT TRUE,
     criado_em           TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
     atualizado_em       TIMESTAMPTZ   NOT NULL DEFAULT NOW()
@@ -71,6 +71,16 @@ CREATE TABLE IF NOT EXISTS recebimentos (
     taxa_administrativa     NUMERIC(12,2) NOT NULL,
     valor_liquido           NUMERIC(12,2) NOT NULL,
     criado_em               TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Acordos registrados
+CREATE TABLE IF NOT EXISTS acordos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    participante_id UUID NOT NULL REFERENCES participantes(id) ON DELETE CASCADE,
+    valor_parcela NUMERIC(12,2) NOT NULL,
+    parcelas INTEGER NOT NULL,
+    total NUMERIC(12,2) NOT NULL,
+    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- View: resumo financeiro por participante+consórcio

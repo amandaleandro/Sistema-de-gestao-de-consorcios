@@ -6,7 +6,7 @@ export interface Consorcio {
   taxa_administrativa: number
   qtd_participantes: number
   data_inicio: string
-  periodicidade: 'diario' | 'semanal' | 'mensal'
+  periodicidade: 'diario' | 'semanal' | 'quinzenal' | 'mensal'
   ativo: boolean
   criado_em: string
 }

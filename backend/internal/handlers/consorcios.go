@@ -68,9 +68,9 @@ func (h *Handler) CreateConsorcio(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "nome, valor_inicial_cota e qtd_participantes são obrigatórios")
 		return
 	}
-	valid := map[string]bool{"diario": true, "semanal": true, "mensal": true}
+	valid := map[string]bool{"diario": true, "semanal": true, "quinzenal": true, "mensal": true}
 	if !valid[in.Periodicidade] {
-		writeError(w, http.StatusBadRequest, "periodicidade deve ser diario, semanal ou mensal")
+		writeError(w, http.StatusBadRequest, "periodicidade deve ser diario, semanal, quinzenal ou mensal")
 		return
 	}
 
@@ -190,6 +190,8 @@ func (h *Handler) GerarPeriodos(w http.ResponseWriter, r *http.Request) {
 			dataRef = dataInicio.AddDate(0, 0, i)
 		case "semanal":
 			dataRef = dataInicio.AddDate(0, 0, i*7)
+		case "quinzenal":
+			dataRef = dataInicio.AddDate(0, 0, i*15)
 		case "mensal":
 			dataRef = dataInicio.AddDate(0, i, 0)
 		}

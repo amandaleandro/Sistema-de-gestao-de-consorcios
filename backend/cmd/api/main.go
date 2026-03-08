@@ -116,6 +116,11 @@ func main() {
 			r.With(authmw.RequireRole("admin")).Put("/users/{id}", h.UpdateUser)
 			r.With(authmw.RequireRole("admin")).Delete("/users/{id}", h.DeleteUser)
 			r.Patch("/users/{id}/senha", h.AlterarSenha)
+
+			r.With(authmw.RequireRole("admin", "operador")).Post("/acordos", h.CriarAcordo)
+
+			// Acordos
+			r.With(authmw.RequireRole("admin", "operador")).Get("/participantes/{id}/acordos", h.ListarAcordosParticipante)
 		})
 	})
 

@@ -22,6 +22,8 @@ import ParticipanteDetalhe from './pages/ParticipanteDetalhe'
 import PagamentosPage from './pages/PagamentosPage'
 import RecebimentosPage from './pages/RecebimentosPage'
 import UsuariosPage from './pages/UsuariosPage'
+import AcordosAdmin from './pages/AcordosAdmin'
+import AcordoDetalheAdmin from './pages/AcordoDetalheAdmin'
 
 const roleColors: Record<string, string> = {
   admin: 'bg-red-500/20 text-red-200',
@@ -44,7 +46,11 @@ function AppLayout() {
     { to: '/participantes', label: 'Participantes', icon: Users },
     { to: '/pagamentos', label: 'Pagamentos', icon: CreditCard },
     { to: '/recebimentos', label: 'Recebimentos', icon: Gift },
-    ...(isAdmin ? [{ to: '/usuarios', label: 'Usuários', icon: ShieldCheck }] : []),
+    ...(isAdmin ? [
+      { to: '/usuarios', label: 'Usuários', icon: ShieldCheck },
+      { to: '/acordos', label: 'Acordos', icon: CreditCard },
+      { to: '/acordos/:id', label: 'Detalhe de Acordo', icon: CreditCard },
+    ] : []),
   ]
 
   return (
@@ -126,6 +132,8 @@ function AppLayout() {
           <Route path="/pagamentos" element={<ProtectedRoute><PagamentosPage /></ProtectedRoute>} />
           <Route path="/recebimentos" element={<ProtectedRoute><RecebimentosPage /></ProtectedRoute>} />
           <Route path="/usuarios" element={<ProtectedRoute requiredRole="admin"><UsuariosPage /></ProtectedRoute>} />
+          <Route path="/acordos" element={<ProtectedRoute requiredRole="admin"><AcordosAdmin /></ProtectedRoute>} />
+          <Route path="/acordos/:id" element={<ProtectedRoute requiredRole="admin"><AcordoDetalheAdmin /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

@@ -196,3 +196,14 @@ type ProximoRecebimento struct {
 	ValorBruto       float64 `json:"valor_bruto"`
 	ValorLiquido     float64 `json:"valor_liquido"`
 }
+
+// ---- Acordo ----
+
+type Acordo struct {
+	ID             string    `json:"id"`
+	ParticipanteID string    `json:"participante_id"`
+	ValorParcela   float64   `json:"valor_parcela"`
+	Parcelas       int       `json:"parcelas"`
+	Total          float64   `json:"total"`
+	CriadoEm       time.Time `json:"criado_em"`
+}

@@ -4,12 +4,17 @@ import api from '../lib/api'
 import { ResumoParticipante, ConsolidacaoDia } from '../types'
 import { formatBRL, formatDate, statusLabel } from '../lib/utils'
 import { ArrowLeft, ArrowDownCircle, ArrowUpCircle, Calendar } from 'lucide-react'
+import SimuladorAcordo from '../components/SimuladorAcordo'
+import { SimuladorAcordoAdmin, AcordoSimulado } from '../pages/SimuladorAcordo'
+import AcordosHistorico from '../components/AcordosHistorico'
 
 export default function ParticipanteDetalhe() {
   const { id } = useParams<{ id: string }>()
   const [resumo, setResumo] = useState<ResumoParticipante | null>(null)
   const [consolidacao, setConsolidacao] = useState<ConsolidacaoDia | null>(null)
   const [dataConsol, setDataConsol] = useState(new Date().toISOString().slice(0, 10))
+  const [acordo, setAcordo] = useState<AcordoSimulado | null>(null)
+  const [registrando, setRegistrando] = useState(false)
 
   const loadConsolidacao = (data: string) => {
     api.get<ConsolidacaoDia>(`/participantes/${id}/consolidacao?data=${data}`)
@@ -24,6 +29,18 @@ export default function ParticipanteDetalhe() {
   if (!resumo) return <div className="p-8 text-gray-400">Carregando...</div>
 
   const total_pendentes = resumo.consorcios.reduce((s, c) => s + c.parcelas_pendentes, 0)
+
+  const registrarAcordo = async (acordo: AcordoSimulado) => {
+    setRegistrando(true)
+    await api.post(`/acordos`, {
+      participante_id: id,
+      valor_parcela: acordo.valorParcela,
+      parcelas: acordo.parcelas,
+      total: acordo.total
+    })
+    setAcordo(acordo)
+    setRegistrando(false)
+  }
 
   return (
     <div className="p-8 space-y-6">
@@ -88,6 +105,20 @@ export default function ParticipanteDetalhe() {
           </div>
         )}
       </div>
+
+      {/* Simulador de acordo para inadimplentes */}
+      {resumo.total_devido > 0 && (
+        <div className="card bg-blue-50 border-blue-200">
+          <h3 className="font-semibold text-blue-800 mb-2">Simule um acordo para quitar sua dívida</h3>
+          <SimuladorAcordoAdmin totalDevido={resumo.total_devido} onSimular={registrarAcordo} />
+          {acordo && (
+            <div className="mt-2 text-green-700 font-medium">Acordo registrado: {acordo.parcelas}x de {formatBRL(acordo.valorParcela)}</div>
+          )}
+        </div>
+      )}
+
+      {/* Histórico de acordos */}
+      <AcordosHistorico participanteId={id!} />
 
       {/* Consórcios */}
       <div className="card">

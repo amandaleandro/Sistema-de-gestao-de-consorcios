@@ -9,7 +9,7 @@ interface FormData {
   taxa_administrativa: number
   qtd_participantes: number
   data_inicio: string
-  periodicidade: 'diario' | 'semanal' | 'mensal'
+  periodicidade: 'diario' | 'semanal' | 'quinzenal' | 'mensal'
 }
 
 interface Props {
@@ -104,6 +104,7 @@ export default function ConsorcioForm({ initial, onSaved, onCancel }: Props) {
           <select className="input" {...register('periodicidade', { required: 'Obrigatório' })}>
             <option value="diario">Diário</option>
             <option value="semanal">Semanal</option>
+            <option value="quinzenal">Quinzenal</option>
             <option value="mensal">Mensal</option>
           </select>
         </div>
