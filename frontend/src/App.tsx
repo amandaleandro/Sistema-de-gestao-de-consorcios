@@ -71,9 +71,10 @@ function AppLayout() {
       {/* Sidebar */}
       <aside
         className={clsx(
-          'fixed md:static top-0 left-0 h-full w-64 md:w-60 bg-brand-900 flex flex-col shrink-0 z-20 transition-transform duration-200',
+          // Mobile: fixed, Desktop: static
+          'fixed md:static top-0 left-0 h-full md:h-screen w-64 md:w-60 bg-brand-900 flex flex-col shrink-0 z-20 transition-transform duration-200',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-          'md:translate-x-0 md:flex-row md:h-auto md:w-60 md:relative md:top-auto md:left-auto',
+          'md:translate-x-0 md:relative md:top-0 md:left-0',
         )}
         style={{ maxWidth: '100vw' }}
       >
@@ -159,7 +160,7 @@ function AppLayout() {
       )}
 
       {/* Main */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto md:ml-60">
         <Routes>
           <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="/consorcios" element={<ProtectedRoute><ConsorciosPage /></ProtectedRoute>} />
